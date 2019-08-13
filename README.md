@@ -80,3 +80,16 @@ It is important to add all the columns in the first row as all the subsequent ro
 
 After the first row, it is possible to add less columns. However, more is not permissable. The `width` and `height` attributes for Rows and Columns are mandatory. The isPixel attribute is mandatory if the width and height is in Pixels. 
 
+**Implemented Observables**
+
+The following are the current implemented observables for Controls :
+
+```
+onPointerClickObservable
+onPointerMoveObservable
+onPointerUpObservable
+onPointerOutObservable
+onClipboardObservable
+onPointerDownObservable
+onPointerEnterObservable
+```
