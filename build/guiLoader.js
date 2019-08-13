@@ -33,31 +33,36 @@ var GUILoader = /** @class */ (function () {
         onLoadCallback();
     };
     GUILoader.prototype._createGuiElement = function (node) {
-        var NewGUINode = eval("BABYLON.GUI." + node.nodeName);
-        var guiNode = new NewGUINode();
-        for (var i = 0; i < node.attributes.length; i++) {
-            if (this._events[node.attributes[i].name]) {
-                guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
-                continue;
+        try {
+            var NewGUINode = eval("BABYLON.GUI." + node.nodeName);
+            var guiNode = new NewGUINode();
+            for (var i = 0; i < node.attributes.length; i++) {
+                if (this._events[node.attributes[i].name]) {
+                    guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
+                    continue;
+                }
+                if (!this._objectAttributes[node.attributes[i].name]) {
+                    guiNode[node.attributes[i].name] = node.attributes[i].value;
+                }
+                else {
+                    guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
+                }
             }
-            if (!this._objectAttributes[node.attributes[i].name]) {
-                guiNode[node.attributes[i].name] = node.attributes[i].value;
+            if (!node.attributes.getNamedItem("id")) {
+                this._nodes[node.nodeName + Object.keys(this._nodes).length + "_gen"] = guiNode;
+                return guiNode;
+            }
+            if (!this._nodes[node.attributes.getNamedItem("id").nodeValue]) {
+                this._nodes[node.attributes.getNamedItem("id").nodeValue] = guiNode;
             }
             else {
-                guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
+                throw "GUILoader Exception : Duplicate ID, every element should have an unique ID attribute";
             }
-        }
-        if (!node.attributes.getNamedItem("id")) {
-            this._nodes[node.nodeName + Object.keys(this._nodes).length + "_gen"] = guiNode;
             return guiNode;
         }
-        if (!this._nodes[node.attributes.getNamedItem("id").nodeValue]) {
-            this._nodes[node.attributes.getNamedItem("id").nodeValue] = guiNode;
+        catch (e) {
+            throw "GUILoader Exception : Error parsing Control " + node.nodeName + ".";
         }
-        else {
-            throw "GUILoader Exception : Duplicate ID, every element should have an unique ID attribute";
-        }
-        return guiNode;
     };
     GUILoader.prototype._parseGrid = function (node, guiNode, parent) {
         var width;
@@ -74,8 +79,14 @@ var GUILoader = /** @class */ (function () {
             if (rows[i].nodeType != this._nodeTypes.element) {
                 continue;
             }
+            if (rows[i].nodeName != "Row") {
+                throw "GUILoader Exception : Expecting Row node, received " + rows[i].nodeName;
+            }
             rowNumber += 1;
             columns = rows[i].childNodes;
+            if (!rows[i].attributes.getNamedItem("height")) {
+                throw "GUILoader Exception : Height must be defined for grid rows";
+            }
             height = eval(rows[i].attributes.getNamedItem("height").nodeValue);
             isPixel = rows[i].attributes.getNamedItem("isPixel") ? eval(rows[i].attributes.getNamedItem("isPixel").nodeValue) : false;
             guiNode.addRowDefinition(height, isPixel);
@@ -83,11 +94,17 @@ var GUILoader = /** @class */ (function () {
                 if (columns[j].nodeType != this._nodeTypes.element) {
                     continue;
                 }
+                if (columns[j].nodeName != "Column") {
+                    throw "GUILoader Exception : Expecting Column node, received " + columns[j].nodeName;
+                }
                 columnNumber += 1;
                 if (rowNumber > 0 && columnNumber > totalColumnsNumber) {
                     throw "GUILoader Exception : In the Grid element, the number of columns is defined in the first row, do not add more columns in the subsequent rows.";
                 }
                 if (rowNumber == 0) {
+                    if (!columns[j].attributes.getNamedItem("width")) {
+                        throw "GUILoader Exception : Width must be defined for all the grid columns in the first row";
+                    }
                     width = eval(columns[j].attributes.getNamedItem("width").nodeValue);
                     isPixel = columns[j].attributes.getNamedItem("isPixel") ? eval(columns[j].attributes.getNamedItem("isPixel").nodeValue) : false;
                     guiNode.addColumnDefinition(width, isPixel);

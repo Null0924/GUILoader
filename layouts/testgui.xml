@@ -2,15 +2,13 @@
 
 <root>
     <Rectangle verticalAlignment="Control.HORIZONTAL_ALIGNMENT_TOP" background="yellow" id="firstContainer" width=".8" name="firstContainer" height=".4" color = "Orange"  > 
-
         <Button id = "imageButton" width = "0.2" background="red" height = "0.3" name = "imageButton"> 
-                <Image id="image" source="assets/icon.png" width = "1" height = "1" name="image" stretch = "Image.STRETCH_FILL" horizontalAlignment="Control.HORIZONTAL_ALIGNMENT_LEFT"  /> 
+            <Image id="image" source="assets/icon.png" width = "1" height = "1" name="image" stretch = "Image.STRETCH_FILL" horizontalAlignment="Control.HORIZONTAL_ALIGNMENT_LEFT"  /> 
         </Button>  
-       
     </Rectangle> 
     
     
-    <Grid  name="grid" top="50px" background="black" height="200px" width="200px" >
+    <Grid name="grid" top="50px" background="black" height="200px" width="200px" >
         <Row height = "0.5" >
             <Column width = "0.2"> 
             </Column>
@@ -28,9 +26,8 @@
     </Grid> 
 
     <Button id = "helloButton" top="250px"  width = "0.2" height = "0.2" name = "helloButton" background="green" onPointerUpObservable = "clickEvent" > 
-                <TextBlock id="hello" width = "1" height = "1" name="hello" textHorizontalAlignment = "Control.HORIZONTAL_ALIGNMENT_CENTER"  textWrapping = "true"  text = "Hello world" color = "black" fontSize = "24"/> 
+        <TextBlock id="hello" width = "1" height = "1" name="hello" textHorizontalAlignment = "Control.HORIZONTAL_ALIGNMENT_CENTER"  textWrapping = "true"  text = "Hello world" color = "black" fontSize = "24"/> 
     </Button> 
 
     <TextBlock id="hello2" top = "400px" width = ".5" height = ".8" name="hello"   text = "Hello world" color = "black" resizeToFit="true" fontSize = "24"/>  
-
 </root>
