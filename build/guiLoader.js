@@ -1,7 +1,7 @@
 var GUILoader = /** @class */ (function () {
-    function GUILoader() {
+    function GUILoader(parentClass) {
+        if (parentClass === void 0) { parentClass = null; }
         this._nodes = {};
-        this._this = this;
         this._nodeTypes = {
             element: 1,
             attribute: 2,
@@ -23,6 +23,9 @@ var GUILoader = /** @class */ (function () {
             "onPointerDownObservable": 6,
             "onPointerEnterObservable": 7
         };
+        if (parentClass) {
+            this._parentClass = parentClass;
+        }
     }
     GUILoader.prototype._xmlResponse = function (xml, rootNode, onLoadCallback) {
         if (!xml.responseXML) {
@@ -30,7 +33,9 @@ var GUILoader = /** @class */ (function () {
         }
         var xmlDoc = xml.responseXML.documentElement;
         this._parseXml(xmlDoc.firstChild, rootNode);
-        onLoadCallback();
+        if (onLoadCallback) {
+            onLoadCallback();
+        }
     };
     GUILoader.prototype._createGuiElement = function (node) {
         try {
@@ -38,7 +43,12 @@ var GUILoader = /** @class */ (function () {
             var guiNode = new NewGUINode();
             for (var i = 0; i < node.attributes.length; i++) {
                 if (this._events[node.attributes[i].name]) {
-                    guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
+                    if (this._parentClass) {
+                        guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
+                    }
+                    else {
+                        guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
+                    }
                     continue;
                 }
                 if (!this._objectAttributes[node.attributes[i].name]) {

@@ -25,6 +25,7 @@
     <script src="https://preview.babylonjs.com/gui/babylon.gui.js"></script>
     <!-- <script src="libs/babylon.inspector.bundle.js"></script> -->
     <script src="build/guiLoader.js"></script>
+    <script src="popup.js"></script>
 
 </head>
 
@@ -45,7 +46,7 @@
 
             // Create the scene space
             var scene = new BABYLON.Scene(engine);
-            scene.debugLayer.show()
+            // scene.debugLayer.show()
             // Add a camera to the scene and attach it to the canvas
             var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0, 0, 5), scene);
             camera.attachControl(canvas, true);
@@ -54,22 +55,22 @@
             var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
             var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(0, 1, -1), scene);
 
-            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-            var GuiLoader = new GUILoader();
-
-            GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function () {
-                console.log(GuiLoader.getNodes())
-            });
-
-            
             return scene;
         };
         /******* End of the create scene function ******/
 
         var scene = createScene(); //Call the createScene function
+
+        var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        var GuiLoader = new GUILoader();
+
+        GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function () {
+            console.log(GuiLoader.getNodes())
+        });
+        
         var clickEvent = function () {
-            console.log("test click");
+            var popup = new Popup(advancedTexture);
         }
 
         // Register a render loop to repeatedly render the scene

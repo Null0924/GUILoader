@@ -1,7 +1,6 @@
 class GUILoader {
     private _nodes: any = {};
 
-    private _this :any = this;
     private _nodeTypes: any = {
         element: 1,
         attribute: 2,
@@ -26,8 +25,12 @@ class GUILoader {
         "onPointerEnterObservable": 7
     };
 
-    constructor() {
+    private _parentClass : any;
 
+    constructor(parentClass = null) {
+        if(parentClass) {
+            this._parentClass = parentClass;
+        } 
     }
 
     private _xmlResponse(xml: any, rootNode: any, onLoadCallback: any): void {
@@ -37,7 +40,9 @@ class GUILoader {
 
         let xmlDoc = xml.responseXML.documentElement;
         this._parseXml(xmlDoc.firstChild, rootNode);
-        onLoadCallback();
+        if(onLoadCallback) {
+            onLoadCallback();
+        }
     }
 
     private _createGuiElement(node: any): any {
@@ -50,7 +55,12 @@ class GUILoader {
             for (let i = 0; i < node.attributes.length; i++) {
                 
                 if (this._events[node.attributes[i].name]) {
-                    guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
+                    if(this._parentClass) {
+                        guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
+                    } else {
+                        guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
+                    }
+                    
                     continue;
                 }
     
@@ -195,7 +205,7 @@ class GUILoader {
         return this._nodes;
     }
 
-    public loadLayout(xmlFile, rootNode, callback): void {
+    public loadLayout(xmlFile : any, rootNode : any, callback : any): void {
         let xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
