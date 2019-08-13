@@ -14,6 +14,7 @@ Download the GUILoader.js and include it in your project.
 then initialize the library like the following : 
 
 ```
+var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 var GuiLoader = new GUILoader();
 GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, null)
 ```
@@ -77,5 +78,5 @@ only usecase when this differs, is in the `Grid` element. This is what a Grid el
 The `Row` and `Column` are different from the normal way of doing them in BABYLON.GUI. The columns definitions are added in the first row. 
 It is important to add all the columns in the first row as all the subsequent rows will have the same number of columns. 
 
-After the first row, it is possible to add less columns. However, more is not permissable. 
+After the first row, it is possible to add less columns. However, more is not permissable. The `width` and `height` attributes for Rows and Columns are mandatory. The isPixel attribute is mandatory if the width and height is in Pixels. 
 
