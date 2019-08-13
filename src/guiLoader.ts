@@ -55,7 +55,7 @@ class GUILoader {
                 }
     
                 if (!this._objectAttributes[node.attributes[i].name]) {
-                    guiNode[node.attributes[i].name] = node.attributes[i].value;
+                    guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
                 } else {
                     guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
                 }

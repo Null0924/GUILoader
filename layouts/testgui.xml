@@ -13,7 +13,7 @@
             <Column width = "0.2"> 
             </Column>
             <Column width = "0.5"> 
-                <Rectangle    background = "green" >
+                <Rectangle  background = "green" thickness = "0" >
                    <TextBlock text = "Hello grid" color = "white"/> 
                 </Rectangle>
             </Column>
@@ -22,7 +22,7 @@
             <Column> 
             </Column>
             <Column> 
-                <Rectangle  background = "red" > 
+                <Rectangle  background = "red" thickness = "0" > 
                     <TextBlock text = "Hello grid" color = "white"/> 
                 </Rectangle> 
             </Column>
