@@ -13,14 +13,18 @@
             <Column width = "0.2"> 
             </Column>
             <Column width = "0.5"> 
-                <Rectangle id="1rect" thickness= "0" name="1rect" background = "green" ></Rectangle>
+                <Rectangle    background = "green" >
+                   <TextBlock text = "Hello grid" color = "white"/> 
+                </Rectangle>
             </Column>
         </Row>
         <Row height = "0.5">
             <Column> 
             </Column>
             <Column> 
-                <Rectangle id="2rect" thickness= "0" name="2rect" background = "red" ></Rectangle>
+                <Rectangle  background = "red" > 
+                    <TextBlock text = "Hello grid" color = "white"/> 
+                </Rectangle> 
             </Column>
         </Row>
     </Grid> 
