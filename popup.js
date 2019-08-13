@@ -6,6 +6,7 @@ function Popup(advancedTexture) {
     
     this.storeUsernameEvent = function() {
         console.log("event");
+        _this.guiLoader.getNodeById("popupContainer").dispose();
     }
 
     this.guiLoader.loadLayout("layouts/popup.xml", advancedTexture, null);
