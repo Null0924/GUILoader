@@ -36,10 +36,8 @@ class GUILoader {
         }
 
         let xmlDoc = xml.responseXML.documentElement;
-        // console.log(domparser.parseFromString(xmlDoc,"text/xml"))
         this._parseXml(xmlDoc.firstChild, rootNode);
         onLoadCallback();
-        // console.log(xmlDoc);
     }
 
     private _createGuiElement(node: any): any {
@@ -47,13 +45,9 @@ class GUILoader {
 
         let guiNode = new NewGUINode();
 
-        // console.log(node.attributes);
         for (let i = 0; i < node.attributes.length; i++) {
-            console.log(node.attributes[i].name);
-
-
+            
             if (this._events[node.attributes[i].name]) {
-                // console.log("event", clickEvent);
                 guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
                 continue;
             }
@@ -66,6 +60,7 @@ class GUILoader {
         }
 
         if (!node.attributes.getNamedItem("id")) {
+            this._nodes[node.nodeName + Object.keys(this._nodes).length + "_gen"] = guiNode;
             return guiNode;
         }
 
@@ -97,7 +92,6 @@ class GUILoader {
             columns = rows[i].childNodes;
             height = eval(rows[i].attributes.getNamedItem("height").nodeValue);
             isPixel = rows[i].attributes.getNamedItem("isPixel") ? eval(rows[i].attributes.getNamedItem("isPixel").nodeValue) : false;
-            console.log("row height is", height, "is pixel", isPixel);
             guiNode.addRowDefinition(height, isPixel);
 
             for (let j = 0; j < columns.length; j++) {
@@ -112,7 +106,6 @@ class GUILoader {
                 if (rowNumber == 0) {
                     width = eval(columns[j].attributes.getNamedItem("width").nodeValue);
                     isPixel = columns[j].attributes.getNamedItem("isPixel") ? eval(columns[j].attributes.getNamedItem("isPixel").nodeValue) : false;
-                    console.log("column width is", width, "is pixel", isPixel);
                     guiNode.addColumnDefinition(width, isPixel);
                 }
 
@@ -142,9 +135,6 @@ class GUILoader {
 
     private _parseElement(node: any, guiNode: any, parent: any): void {
 
-        //raise error when id is duplicate
-        console.log(this._nodes);
-
         if (node.firstChild) {
             this._parseXml(node.firstChild, guiNode);
         }
@@ -155,7 +145,6 @@ class GUILoader {
     }
 
     private _parseXml(node: any, parent: any): void {
-        // console.log(node.childNodes);
 
         if (node.nodeType != this._nodeTypes.element) {
             if (node.nextSibling) {
@@ -169,8 +158,6 @@ class GUILoader {
         if (parent) {
             parent.addControl(guiNode);
         }
-
-        console.log(this._nodes);
 
         if (node.nodeName == "Grid") {
             this._parseGrid(node, guiNode, parent);
@@ -199,7 +186,5 @@ class GUILoader {
         xhttp.open("GET", xmlFile, true);
         xhttp.send();
     }
-
-  
 }
 

@@ -10,28 +10,19 @@
     </Rectangle> 
     
     
-    <Grid id="grid" name="grid" top="50px" background="black" height="200px" width="200px" >
+    <Grid  name="grid" top="50px" background="black" height="200px" width="200px" >
         <Row height = "0.5" >
             <Column width = "0.2"> 
             </Column>
             <Column width = "0.5"> 
                 <Rectangle id="1rect" thickness= "0" name="1rect" background = "green" ></Rectangle>
             </Column>
-            <Column width = "0.5"> 
-                <Rectangle id="3rect" thickness= "0" name="3rect" background = "blue" ></Rectangle>
-            </Column>
-            <Column width = "0.2"> 
-            </Column>
         </Row>
         <Row height = "0.5">
             <Column> 
             </Column>
             <Column> 
-            </Column>
-            <Column> 
                 <Rectangle id="2rect" thickness= "0" name="2rect" background = "red" ></Rectangle>
-            </Column>
-            <Column> 
             </Column>
         </Row>
     </Grid> 

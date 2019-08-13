@@ -29,19 +29,14 @@ var GUILoader = /** @class */ (function () {
             throw "GUILoader Exception : XML file is malformed or corrupted.";
         }
         var xmlDoc = xml.responseXML.documentElement;
-        // console.log(domparser.parseFromString(xmlDoc,"text/xml"))
         this._parseXml(xmlDoc.firstChild, rootNode);
         onLoadCallback();
-        // console.log(xmlDoc);
     };
     GUILoader.prototype._createGuiElement = function (node) {
         var NewGUINode = eval("BABYLON.GUI." + node.nodeName);
         var guiNode = new NewGUINode();
-        // console.log(node.attributes);
         for (var i = 0; i < node.attributes.length; i++) {
-            console.log(node.attributes[i].name);
             if (this._events[node.attributes[i].name]) {
-                // console.log("event", clickEvent);
                 guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
                 continue;
             }
@@ -53,6 +48,7 @@ var GUILoader = /** @class */ (function () {
             }
         }
         if (!node.attributes.getNamedItem("id")) {
+            this._nodes[node.nodeName + Object.keys(this._nodes).length + "_gen"] = guiNode;
             return guiNode;
         }
         if (!this._nodes[node.attributes.getNamedItem("id").nodeValue]) {
@@ -82,7 +78,6 @@ var GUILoader = /** @class */ (function () {
             columns = rows[i].childNodes;
             height = eval(rows[i].attributes.getNamedItem("height").nodeValue);
             isPixel = rows[i].attributes.getNamedItem("isPixel") ? eval(rows[i].attributes.getNamedItem("isPixel").nodeValue) : false;
-            console.log("row height is", height, "is pixel", isPixel);
             guiNode.addRowDefinition(height, isPixel);
             for (var j = 0; j < columns.length; j++) {
                 if (columns[j].nodeType != this._nodeTypes.element) {
@@ -95,7 +90,6 @@ var GUILoader = /** @class */ (function () {
                 if (rowNumber == 0) {
                     width = eval(columns[j].attributes.getNamedItem("width").nodeValue);
                     isPixel = columns[j].attributes.getNamedItem("isPixel") ? eval(columns[j].attributes.getNamedItem("isPixel").nodeValue) : false;
-                    console.log("column width is", width, "is pixel", isPixel);
                     guiNode.addColumnDefinition(width, isPixel);
                 }
                 cells = columns[j].childNodes;
@@ -120,8 +114,6 @@ var GUILoader = /** @class */ (function () {
         }
     };
     GUILoader.prototype._parseElement = function (node, guiNode, parent) {
-        //raise error when id is duplicate
-        console.log(this._nodes);
         if (node.firstChild) {
             this._parseXml(node.firstChild, guiNode);
         }
@@ -130,7 +122,6 @@ var GUILoader = /** @class */ (function () {
         }
     };
     GUILoader.prototype._parseXml = function (node, parent) {
-        // console.log(node.childNodes);
         if (node.nodeType != this._nodeTypes.element) {
             if (node.nextSibling) {
                 this._parseXml(node.nextSibling, parent);
@@ -141,7 +132,6 @@ var GUILoader = /** @class */ (function () {
         if (parent) {
             parent.addControl(guiNode);
         }
-        console.log(this._nodes);
         if (node.nodeName == "Grid") {
             this._parseGrid(node, guiNode, parent);
         }
