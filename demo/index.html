@@ -24,7 +24,7 @@
     <script src="https://preview.babylonjs.com/babylon.max.js"></script>
     <script src="https://preview.babylonjs.com/gui/babylon.gui.js"></script>
     <!-- <script src="libs/babylon.inspector.bundle.js"></script> -->
-    <script src="build/guiLoader.js"></script>
+    <script src="guiLoader.js"></script>
     <script src="popup.js"></script>
 
 </head>
@@ -63,6 +63,8 @@
         var scene = createScene(); //Call the createScene function
 
         var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        var popup = new Popup(advancedTexture);
+
         var GuiLoader = new GUILoader();
 
         GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function () {
@@ -70,7 +72,7 @@
         });
         
         var clickEvent = function () {
-            var popup = new Popup(advancedTexture);
+            popup.load();
         }
 
         // Register a render loop to repeatedly render the scene
