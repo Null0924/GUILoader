@@ -1,8 +1,6 @@
 # GUILoader
 XML GUILoader for BabylonJS
 
-**Demo**
-https://null0924.github.io/GUILoader/
 
 A library which loads BabylonJS GUI's from XML. It parses XML layouts into BabylonJS GUI elements and makes it possible to create layouts 
 in an easy and structured way.
