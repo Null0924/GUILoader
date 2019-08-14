@@ -18,6 +18,14 @@ var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI"
 var GuiLoader = new GUILoader();
 GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, null)
 ```
+The GuiLoader might be used as part of a javascript class or function. In order for the class to correctly map observables with the class methods, it is necessary to provide the class object in the constructor. This would be how the GuiLoader would be initialized inside a class.
+
+
+```
+var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+var GuiLoader = new GUILoader(this);
+GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, null)
+```
 
 This is what is needed to initialize and load a layout. The third parameter in the loadLayout function, is a callback which is called
 once the layout has been parsed. in this moment it is possible to retrieve elements and add events to them. This would be an example
