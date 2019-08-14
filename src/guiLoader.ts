@@ -92,7 +92,7 @@ class GUILoader {
         let width;
         let height;
         let columns;
-        let rows = node.childNodes;
+        let rows = node.children;
         let cells;
         let isPixel = false;
         let cellNode;
@@ -108,7 +108,7 @@ class GUILoader {
                 throw "GUILoader Exception : Expecting Row node, received " + rows[i].nodeName;
             }
             rowNumber += 1;
-            columns = rows[i].childNodes;
+            columns = rows[i].children;
 
             if(!rows[i].attributes.getNamedItem("height")) {
                 throw "GUILoader Exception : Height must be defined for grid rows";
@@ -138,7 +138,7 @@ class GUILoader {
                     guiNode.addColumnDefinition(width, isPixel);
                 }
 
-                cells = columns[j].childNodes;
+                cells = columns[j].children;
 
                 for (let k = 0; k < cells.length; k++) {
                     if (cells[k].nodeType != this._nodeTypes.element) {

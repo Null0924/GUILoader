@@ -78,7 +78,7 @@ var GUILoader = /** @class */ (function () {
         var width;
         var height;
         var columns;
-        var rows = node.childNodes;
+        var rows = node.children;
         var cells;
         var isPixel = false;
         var cellNode;
@@ -93,7 +93,7 @@ var GUILoader = /** @class */ (function () {
                 throw "GUILoader Exception : Expecting Row node, received " + rows[i].nodeName;
             }
             rowNumber += 1;
-            columns = rows[i].childNodes;
+            columns = rows[i].children;
             if (!rows[i].attributes.getNamedItem("height")) {
                 throw "GUILoader Exception : Height must be defined for grid rows";
             }
@@ -119,7 +119,7 @@ var GUILoader = /** @class */ (function () {
                     isPixel = columns[j].attributes.getNamedItem("isPixel") ? eval(columns[j].attributes.getNamedItem("isPixel").nodeValue) : false;
                     guiNode.addColumnDefinition(width, isPixel);
                 }
-                cells = columns[j].childNodes;
+                cells = columns[j].children;
                 for (var k = 0; k < cells.length; k++) {
                     if (cells[k].nodeType != this._nodeTypes.element) {
                         continue;
