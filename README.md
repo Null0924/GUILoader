@@ -86,16 +86,26 @@ It is important to add all the columns in the first row as all the subsequent ro
 
 After the first row, it is possible to add less columns. However, more is not permissable. The `width` and `height` attributes for Rows and Columns are mandatory. The isPixel attribute is mandatory if the width and height is in Pixels. 
 
+**Dynamic Attributes**
+
+It is possible to add dynamic attributes to your XML layouts. These attributes can either be class attributes or global variables. The following is how to call a global variable.
+
+```
+<?xml version="1.0"?>
+
+<root>
+    <Rectangle verticalAlignment="Control.HORIZONTAL_ALIGNMENT_TOP" background="blue" id="popupContainer" width=".8" name="firstContainer" height=".4" color = "Orange"  > 
+        <InputText id="inputText1" width="{{textWidth}}" maxWidth = "0.3"  height = "40px" color = "white"/> 
+        <Button id = "helloButton"   width = "0.2" verticalAlignment="Control.VERTICAL_ALIGNMENT_BOTTOM" height = "0.2" name = "helloButton" background="green" onPointerUpObservable = "storeUsernameEvent" > 
+            <TextBlock  text = "Store Input" color = "white" /> 
+        </Button>
+    </Rectangle> 
+</root>
+
+```
+
+By wrapping the attributes value with `{{}}`, they get the value of the class attributes or global variables with that name. 
+
 **Implemented Observables**
 
-The following are the current implemented observables for Controls :
-
-```
-onPointerClickObservable
-onPointerMoveObservable
-onPointerUpObservable
-onPointerOutObservable
-onClipboardObservable
-onPointerDownObservable
-onPointerEnterObservable
-```
+All the Observables should be working and functional. Please do a bug report if they do not work. 
