@@ -2,7 +2,7 @@
 
 <root>
     <Rectangle verticalAlignment="Control.HORIZONTAL_ALIGNMENT_TOP" background="blue" id="popupContainer" width=".8" name="firstContainer" height=".4" color = "Orange"  > 
-        <InputText id="inputText1" width = "0.2" maxWidth = "0.3" height = "40px" color = "white"/> 
+        <InputText id="inputText1" width="{{textWidth}}" maxWidth = "0.3"  height = "40px" color = "white"/> 
         <Button id = "helloButton"   width = "0.2" verticalAlignment="Control.VERTICAL_ALIGNMENT_BOTTOM" height = "0.2" name = "helloButton" background="green" onPointerUpObservable = "storeUsernameEvent" > 
             <TextBlock  text = "Store Input" color = "white" /> 
         </Button>

@@ -1,7 +1,8 @@
 function Popup(advancedTexture) {
 
     this.guiLoader = new GUILoader(this);
-    this.loaded = false
+    this.loaded = false;
+    this.textWidth = "50px";
     var _this = this;
     
     this.storeUsernameEvent = function() {

@@ -54,7 +54,7 @@ class GUILoader {
 
             for (let i = 0; i < node.attributes.length; i++) {
                 
-                if (this._events[node.attributes[i].name]) {
+                if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
                     if(this._parentClass) {
                         guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
                     } else {
@@ -64,7 +64,10 @@ class GUILoader {
                     continue;
                 }
     
-                if (!this._objectAttributes[node.attributes[i].name]) {
+                if(node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
+                    guiNode[node.attributes[i].name] = this._parentClass[node.attributes[i].value.substring(2,node.attributes[i].value.length-2)];
+                }
+                else if (!this._objectAttributes[node.attributes[i].name]) {
                     guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
                 } else {
                     guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
