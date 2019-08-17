@@ -29,7 +29,7 @@
         </Row>
     </Grid> 
 
-    <Button id = "helloButton" top="250px"  width = "0.2" height = "0.2" name = "helloButton" background="green" onPointerUpObservable = "clickEvent" > 
+    <Button id = "helloButton" top="250px"  width = "0.2" height = "0.2" name = "helloButton" background="{{color}}" onPointerUpObservable = "clickEvent" > 
         <TextBlock id="hello" width = "1" height = "1" name="hello" textHorizontalAlignment = "Control.HORIZONTAL_ALIGNMENT_CENTER"  textWrapping = "true"  text = "Hello world" color = "black" fontSize = "24"/> 
     </Button> 
 

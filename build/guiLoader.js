@@ -52,7 +52,12 @@ var GUILoader = /** @class */ (function () {
                     continue;
                 }
                 if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
-                    guiNode[node.attributes[i].name] = this._parentClass[node.attributes[i].value.substring(2, node.attributes[i].value.length - 2)];
+                    if (this._parentClass) {
+                        guiNode[node.attributes[i].name] = this._parentClass[node.attributes[i].value.substring(2, node.attributes[i].value.length - 2)];
+                    }
+                    else {
+                        guiNode[node.attributes[i].name] = eval(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
+                    }
                 }
                 else if (!this._objectAttributes[node.attributes[i].name]) {
                     guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
