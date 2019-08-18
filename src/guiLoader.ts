@@ -6,6 +6,8 @@ class GUILoader {
         attribute: 2,
         text: 3
     };
+    
+    private _isLoaded : boolean = false;
 
     private _objectAttributes: any = {
         "textHorizontalAlignment": 1,
@@ -25,12 +27,12 @@ class GUILoader {
         "onPointerEnterObservable": 7
     };
 
-    private _parentClass : any;
+    private _parentClass: any;
 
     constructor(parentClass = null) {
-        if(parentClass) {
+        if (parentClass) {
             this._parentClass = parentClass;
-        } 
+        }
     }
 
     private _xmlResponse(xml: any, rootNode: any, onLoadCallback: any): void {
@@ -40,50 +42,59 @@ class GUILoader {
 
         let xmlDoc = xml.responseXML.documentElement;
         this._parseXml(xmlDoc.firstChild, rootNode);
-        if(onLoadCallback) {
+        this._isLoaded = true;
+        if (onLoadCallback) {
             onLoadCallback();
         }
     }
 
     private _createGuiElement(node: any): any {
-        
+
         try {
             let NewGUINode = eval("BABYLON.GUI." + node.nodeName);
-            
+
             let guiNode = new NewGUINode();
 
             for (let i = 0; i < node.attributes.length; i++) {
-                
+
                 if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
-                    if(this._parentClass) {
+                    if (this._parentClass) {
                         guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
                     } else {
                         guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
                     }
-                    
                     continue;
                 }
-    
-                if(node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
-                    if(this._parentClass) {
-                        guiNode[node.attributes[i].name] = this._parentClass[node.attributes[i].value.substring(2,node.attributes[i].value.length-2)];
+
+                if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
+                    if (this._parentClass) {
+                        let value = node.attributes[i].value.substring(2, node.attributes[i].value.length - 2);
+                        value = value.split(".");
+                        let element = this._parentClass;
+                        for (let i = 0; i < value.length; i++) {
+                            element = element[value[i]];
+                        }
+                        guiNode[node.attributes[i].name] = element;
                     } else {
-                        guiNode[node.attributes[i].name] = eval(node.attributes[i].value.substring(2,node.attributes[i].value.length-2));
+                        guiNode[node.attributes[i].name] = eval(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
                     }
-                    
-                }
-                else if (!this._objectAttributes[node.attributes[i].name]) {
-                    guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
-                } else {
+
+                } else if (!this._objectAttributes[node.attributes[i].name]) {
+                    if (node.attributes[i].value == "true" || node.attributes[i].value == "false") {
+                        guiNode[node.attributes[i].name] = (node.attributes[i].value == 'true')
+                    } else {
+                        guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
+                    }
+                }  else {
                     guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
                 }
             }
-    
+
             if (!node.attributes.getNamedItem("id")) {
                 this._nodes[node.nodeName + Object.keys(this._nodes).length + "_gen"] = guiNode;
                 return guiNode;
             }
-    
+
             if (!this._nodes[node.attributes.getNamedItem("id").nodeValue]) {
                 this._nodes[node.attributes.getNamedItem("id").nodeValue] = guiNode;
             } else {
@@ -91,8 +102,8 @@ class GUILoader {
             }
             return guiNode;
 
-        } catch(e) {
-            throw "GUILoader Exception : Error parsing Control " + node.nodeName + "."; 
+        } catch (e) {
+            throw "GUILoader Exception : Error parsing Control " + node.nodeName + ".";
         }
     }
 
@@ -112,13 +123,13 @@ class GUILoader {
             if (rows[i].nodeType != this._nodeTypes.element) {
                 continue;
             }
-            if(rows[i].nodeName != "Row") {
+            if (rows[i].nodeName != "Row") {
                 throw "GUILoader Exception : Expecting Row node, received " + rows[i].nodeName;
             }
             rowNumber += 1;
             columns = rows[i].children;
 
-            if(!rows[i].attributes.getNamedItem("height")) {
+            if (!rows[i].attributes.getNamedItem("height")) {
                 throw "GUILoader Exception : Height must be defined for grid rows";
             }
             height = eval(rows[i].attributes.getNamedItem("height").nodeValue);
@@ -129,7 +140,7 @@ class GUILoader {
                 if (columns[j].nodeType != this._nodeTypes.element) {
                     continue;
                 }
-                if(columns[j].nodeName != "Column") {
+                if (columns[j].nodeName != "Column") {
                     throw "GUILoader Exception : Expecting Column node, received " + columns[j].nodeName;
                 }
                 columnNumber += 1;
@@ -138,7 +149,7 @@ class GUILoader {
                 }
 
                 if (rowNumber == 0) {
-                    if(!columns[j].attributes.getNamedItem("width")) {
+                    if (!columns[j].attributes.getNamedItem("width")) {
                         throw "GUILoader Exception : Width must be defined for all the grid columns in the first row";
                     }
                     width = eval(columns[j].attributes.getNamedItem("width").nodeValue);
@@ -204,6 +215,10 @@ class GUILoader {
 
     }
 
+    public isLoaded(): boolean {
+        return this._isLoaded;
+    }
+
     public getNodeById(id: string): any {
         return this._nodes[id];
     }
@@ -213,15 +228,52 @@ class GUILoader {
         return this._nodes;
     }
 
+    // public validateXML(txt: any) {
+    //     // code for IE
+    //     if (window.ActiveXObject) {
+    //         let xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+    //         xmlDoc.async = false;
+    //         xmlDoc.loadXML(document.all(txt).value);
+
+    //         if (xmlDoc.parseError.errorCode != 0) {
+    //             txt = "Error Code: " + xmlDoc.parseError.errorCode + "\n";
+    //             txt = txt + "Error Reason: " + xmlDoc.parseError.reason;
+    //             txt = txt + "Error Line: " + xmlDoc.parseError.line;
+    //             alert(txt);
+    //         }
+    //         else {
+    //             alert("No errors found");
+    //         }
+    //     }
+    //     // code for Mozilla, Firefox, Opera, etc.
+    //     else if (document.implementation.createDocument) {
+    //         var parser = new DOMParser();
+    //         var text = document.getElementById(txt).value;
+    //         var xmlDoc = parser.parseFromString(text, "text/xml");
+
+    //         if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+    //             checkErrorXML(xmlDoc.getElementsByTagName("parsererror")[0]);
+    //             alert(xt)
+    //         }
+    //         else {
+    //             alert("No errors found");
+    //         }
+    //     }
+    //     else {
+    //         alert('Your browser cannot handle XML validation');
+    //     }
+    // }
+
     public loadLayout(xmlFile : any, rootNode : any, callback : any): void {
-        let xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                this._xmlResponse(xhttp, rootNode, callback);
-            }
-        }.bind(this);
-        xhttp.open("GET", xmlFile, true);
-        xhttp.send();
-    }
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            this._xmlResponse(xhttp, rootNode, callback);
+        }
+    }.bind(this);
+
+    xhttp.open("GET", xmlFile, true);
+    xhttp.send();
+}
 }
 

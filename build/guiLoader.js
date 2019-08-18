@@ -7,6 +7,7 @@ var GUILoader = /** @class */ (function () {
             attribute: 2,
             text: 3
         };
+        this._isLoaded = false;
         this._objectAttributes = {
             "textHorizontalAlignment": 1,
             "textVerticalAlignment": 2,
@@ -33,6 +34,7 @@ var GUILoader = /** @class */ (function () {
         }
         var xmlDoc = xml.responseXML.documentElement;
         this._parseXml(xmlDoc.firstChild, rootNode);
+        this._isLoaded = true;
         if (onLoadCallback) {
             onLoadCallback();
         }
@@ -53,14 +55,25 @@ var GUILoader = /** @class */ (function () {
                 }
                 if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
                     if (this._parentClass) {
-                        guiNode[node.attributes[i].name] = this._parentClass[node.attributes[i].value.substring(2, node.attributes[i].value.length - 2)];
+                        var value = node.attributes[i].value.substring(2, node.attributes[i].value.length - 2);
+                        value = value.split(".");
+                        var element = this._parentClass;
+                        for (var i_1 = 0; i_1 < value.length; i_1++) {
+                            element = element[value[i_1]];
+                        }
+                        guiNode[node.attributes[i].name] = element;
                     }
                     else {
                         guiNode[node.attributes[i].name] = eval(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
                     }
                 }
                 else if (!this._objectAttributes[node.attributes[i].name]) {
-                    guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
+                    if (node.attributes[i].value == "true" || node.attributes[i].value == "false") {
+                        guiNode[node.attributes[i].name] = (node.attributes[i].value == 'true');
+                    }
+                    else {
+                        guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
+                    }
                 }
                 else {
                     guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
@@ -174,12 +187,48 @@ var GUILoader = /** @class */ (function () {
             this._parseElement(node, guiNode, parent);
         }
     };
+    GUILoader.prototype.isLoaded = function () {
+        return this._isLoaded;
+    };
     GUILoader.prototype.getNodeById = function (id) {
         return this._nodes[id];
     };
     GUILoader.prototype.getNodes = function () {
         return this._nodes;
     };
+    // public validateXML(txt: any) {
+    //     // code for IE
+    //     if (window.ActiveXObject) {
+    //         let xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+    //         xmlDoc.async = false;
+    //         xmlDoc.loadXML(document.all(txt).value);
+    //         if (xmlDoc.parseError.errorCode != 0) {
+    //             txt = "Error Code: " + xmlDoc.parseError.errorCode + "\n";
+    //             txt = txt + "Error Reason: " + xmlDoc.parseError.reason;
+    //             txt = txt + "Error Line: " + xmlDoc.parseError.line;
+    //             alert(txt);
+    //         }
+    //         else {
+    //             alert("No errors found");
+    //         }
+    //     }
+    //     // code for Mozilla, Firefox, Opera, etc.
+    //     else if (document.implementation.createDocument) {
+    //         var parser = new DOMParser();
+    //         var text = document.getElementById(txt).value;
+    //         var xmlDoc = parser.parseFromString(text, "text/xml");
+    //         if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+    //             checkErrorXML(xmlDoc.getElementsByTagName("parsererror")[0]);
+    //             alert(xt)
+    //         }
+    //         else {
+    //             alert("No errors found");
+    //         }
+    //     }
+    //     else {
+    //         alert('Your browser cannot handle XML validation');
+    //     }
+    // }
     GUILoader.prototype.loadLayout = function (xmlFile, rootNode, callback) {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
