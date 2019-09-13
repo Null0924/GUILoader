@@ -106,6 +106,39 @@ It is possible to add dynamic attributes to your XML layouts. These attributes c
 
 By wrapping the attributes value with `{{}}`, they get the value of the class attributes or global variables with that name. 
 
+**Array and Objects iterations from XML**
+
+It is also possible to iterate a structure like an Array or Object directly from XML. This would be handy for example in the case we may need to fill a StackPanel from a source. Even though the most natural usecase would be a stackpanel, this can be used whenever we need to repeat a specific xml block by filling in values from An Array or an Object.
+
+Let's suppose we have the following object in your javascript :
+
+```
+var objTexts = {
+        first: {
+            name: "john",
+            surname: "smith"
+        },
+        second: {
+            name: "ben",
+            surname: "Stiller"
+        },
+       };
+```
+Let's also suppose the following list retains the users of your application and you may want to show them listed in the GUI. This would be possible JS side but this would mean copying the control over and over again. GUILoader makes it much more easier and cleaner directly from XML. This would be how you iterate the aforementioned structure :
+
+ ```
+  <StackPanel background="#ffffff" width = "300px" top="100px" left="200px" id = "panel" dataSource="text in {objTexts}"> 
+        <Container  width="1" height="40px" >
+            <TextBlock  height = "1"  text = "{{text.name}}" color = "red" resizeToFit="true" fontSize = "24"/>  
+            <TextBlock  left="50px" height = "1"  text = "{{text.surname}}" color = "black" resizeToFit="true" fontSize = "24"/>  
+        </Container>
+   </StackPanel>
+ ```
+
+The source is associated to the StackPanel by using the dataSource attribute. The dataSource attribute should always have 3 values in it, the variable name, the keyword "in" and structure name. For an object structure the name must be wrapped in curly brackets like the example above. For an array structure the name can be wrapped up in normal brackets but it is not mandatory. When the dataSource is an array it can be written as `dataSource="text in [objTexts]` or simply `dataSource="text in objTexts"`
+
+The variable part of the dataSource attribute is how you access the source values. Notice in the above example the section `text = "{{text.surname}}"` is how you set a value from the source to your XML. 
+
 **Implemented Observables**
 
 All the Observables should be working and functional. Please do a bug report if they do not work. 
