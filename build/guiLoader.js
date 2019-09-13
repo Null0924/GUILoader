@@ -44,6 +44,9 @@ var GUILoader = /** @class */ (function () {
             var NewGUINode = eval("BABYLON.GUI." + node.nodeName);
             var guiNode = new NewGUINode();
             for (var i = 0; i < node.attributes.length; i++) {
+                if (node.attributes[i].name.toLowerCase().includes("dataSource")) {
+                    continue;
+                }
                 if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
                     if (this._parentClass) {
                         guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
@@ -92,7 +95,7 @@ var GUILoader = /** @class */ (function () {
             return guiNode;
         }
         catch (e) {
-            throw "GUILoader Exception : Error parsing Control " + node.nodeName + ".";
+            throw "GUILoader Exception : Error parsing Control " + node.nodeName + "," + e + ".";
         }
     };
     GUILoader.prototype._parseGrid = function (node, guiNode, parent) {
@@ -169,12 +172,66 @@ var GUILoader = /** @class */ (function () {
             this._parseXml(node.nextSibling, parent);
         }
     };
-    GUILoader.prototype._parseXml = function (node, parent) {
-        if (node.nodeType != this._nodeTypes.element) {
+    GUILoader.prototype._prepareSourceElement = function (node, guiNode, variable, source, iterator) {
+        if (this._parentClass) {
+            this._parentClass[variable] = source[iterator];
+        }
+        else {
+            window[variable] = source[iterator];
+        }
+        if (node.firstChild) {
+            this._parseXml(node.firstChild, guiNode, true);
+        }
+    };
+    GUILoader.prototype._parseElementsFromSource = function (node, guiNode, parent) {
+        var dataSource = node.attributes.getNamedItem("dataSource").value;
+        if (!dataSource.includes(" in ")) {
+            throw "GUILoader Exception : Malformed XML, Data Source must include an in";
+        }
+        else {
+            var isArray = true;
+            var splittedSource = dataSource.split(" in ");
+            if (splittedSource.length < 2) {
+                throw "GUILoader Exception : Malformed XML, Data Source must an iterator and a source";
+            }
+            var source = splittedSource[1];
+            if (source.startsWith("{") && source.endsWith("}")) {
+                isArray = false;
+            }
+            if (!isArray || (source.startsWith("[") && source.endsWith("]"))) {
+                source = source.substring(1, source.length - 1);
+            }
+            if (this._parentClass) {
+                source = this._parentClass[source];
+            }
+            else {
+                source = eval(source);
+            }
+            if (isArray) {
+                for (var i = 0; i < source.length; i++) {
+                    this._prepareSourceElement(node, guiNode, splittedSource[0], source, i);
+                }
+            }
+            else {
+                for (var i in source) {
+                    this._prepareSourceElement(node, guiNode, splittedSource[0], source, i);
+                }
+            }
             if (node.nextSibling) {
                 this._parseXml(node.nextSibling, parent);
             }
+        }
+    };
+    GUILoader.prototype._parseXml = function (node, parent, generated) {
+        if (generated === void 0) { generated = false; }
+        if (node.nodeType != this._nodeTypes.element) {
+            if (node.nextSibling) {
+                this._parseXml(node.nextSibling, parent, generated);
+            }
             return;
+        }
+        if (generated) {
+            node.setAttribute("id", parent.id + parent._children.length + 1);
         }
         var guiNode = this._createGuiElement(node);
         if (parent) {
@@ -183,8 +240,11 @@ var GUILoader = /** @class */ (function () {
         if (node.nodeName == "Grid") {
             this._parseGrid(node, guiNode, parent);
         }
-        else {
+        else if (!node.attributes.getNamedItem("dataSource")) {
             this._parseElement(node, guiNode, parent);
+        }
+        else {
+            this._parseElementsFromSource(node, guiNode, parent);
         }
     };
     GUILoader.prototype.isLoaded = function () {

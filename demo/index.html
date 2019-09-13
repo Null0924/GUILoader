@@ -14,7 +14,7 @@
             margin: 0;
             padding: 0;
         }
-
+        
         #renderCanvas {
             width: 100%;
             height: 100%;
@@ -41,7 +41,7 @@
             BABYLON.Tools.GetClassName = BABYLON.Tools.getClassName;
         }
         /******* Add the create scene function ******/
-        var createScene = function () {
+        var createScene = function() {
 
 
             // Create the scene space
@@ -59,30 +59,40 @@
             return scene;
         };
         /******* End of the create scene function ******/
-
+        var texts = ["ben", "john", "Mat"];
+        var objTexts = {
+            first: {
+                name: "john",
+                surname: "smith"
+            },
+            second: {
+                name: "ben",
+                surname: "Stiller"
+            },
+        };
         var scene = createScene(); //Call the createScene function
-        var color="purple";
+        var color = "purple";
 
         var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
         var popup = new Popup(advancedTexture);
 
         var GuiLoader = new GUILoader();
 
-        GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function () {
+        GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function() {
             console.log(GuiLoader.getNodes())
         });
-        
-        var clickEvent = function () {
+
+        var clickEvent = function() {
             popup.load();
         }
 
         // Register a render loop to repeatedly render the scene
-        engine.runRenderLoop(function () {
+        engine.runRenderLoop(function() {
             scene.render();
         });
 
         // Watch for browser/canvas resize events
-        window.addEventListener("resize", function () {
+        window.addEventListener("resize", function() {
             engine.resize();
         });
     </script>

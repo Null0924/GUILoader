@@ -57,6 +57,10 @@ class GUILoader {
 
             for (let i = 0; i < node.attributes.length; i++) {
 
+                if (node.attributes[i].name.toLowerCase().includes("dataSource")) {
+                    continue;
+                }
+
                 if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
                     if (this._parentClass) {
                         guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
@@ -88,6 +92,7 @@ class GUILoader {
                 }  else {
                     guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
                 }
+                
             }
 
             if (!node.attributes.getNamedItem("id")) {
@@ -103,7 +108,7 @@ class GUILoader {
             return guiNode;
 
         } catch (e) {
-            throw "GUILoader Exception : Error parsing Control " + node.nodeName + ".";
+            throw "GUILoader Exception : Error parsing Control " + node.nodeName + "," + e + ".";
         }
     }
 
@@ -192,15 +197,72 @@ class GUILoader {
         }
     }
 
-    private _parseXml(node: any, parent: any): void {
+    private _prepareSourceElement(node: any, guiNode: any, variable: string, source: any, iterator: any) : void {
+        if(this._parentClass) {
+            this._parentClass[variable] = source[iterator];
+        } else {
+            window[variable] = source[iterator];
+        }
+
+        if (node.firstChild) {
+            this._parseXml(node.firstChild, guiNode, true);
+        }
+    }
+
+    private _parseElementsFromSource(node: any, guiNode: any, parent: any): void {
+        let dataSource = node.attributes.getNamedItem("dataSource").value;
+        if(!dataSource.includes(" in ")) {
+            throw "GUILoader Exception : Malformed XML, Data Source must include an in";
+        } else {
+            let isArray = true;
+            let splittedSource = dataSource.split(" in ");
+            if(splittedSource.length < 2) {
+                throw "GUILoader Exception : Malformed XML, Data Source must an iterator and a source";
+            }
+            let source = splittedSource[1];
+            if(source.startsWith("{") && source.endsWith("}")) {
+                isArray = false;
+            }
+            
+            if(!isArray || (source.startsWith("[") && source.endsWith("]"))) {
+                source = source.substring(1, source.length - 1);
+            } 
+            
+            if(this._parentClass) {
+                source = this._parentClass[source];
+            } else {
+                source = eval(source);
+            }
+
+            if(isArray) {
+                for(let i = 0; i < source.length; i++) {
+                    this._prepareSourceElement(node, guiNode, splittedSource[0], source, i);
+                }
+            } else {
+                for(let i in source) {
+                    this._prepareSourceElement(node, guiNode, splittedSource[0], source, i);
+                }
+            }
+
+            if (node.nextSibling) {
+                this._parseXml(node.nextSibling, parent);
+            }
+        }
+    }
+
+    private _parseXml(node: any, parent: any, generated: boolean = false): void {
 
         if (node.nodeType != this._nodeTypes.element) {
             if (node.nextSibling) {
-                this._parseXml(node.nextSibling, parent);
+                this._parseXml(node.nextSibling, parent, generated);
             }
             return;
         }
 
+        if(generated) {
+            node.setAttribute("id", parent.id + parent._children.length + 1); 
+        }
+        
         let guiNode = this._createGuiElement(node);
 
         if (parent) {
@@ -209,10 +271,11 @@ class GUILoader {
 
         if (node.nodeName == "Grid") {
             this._parseGrid(node, guiNode, parent);
-        } else {
+        } else if(!node.attributes.getNamedItem("dataSource")){
             this._parseElement(node, guiNode, parent);
+        } else {
+            this._parseElementsFromSource(node, guiNode, parent);
         }
-
     }
 
     public isLoaded(): boolean {
@@ -222,7 +285,6 @@ class GUILoader {
     public getNodeById(id: string): any {
         return this._nodes[id];
     }
-
 
     public getNodes(): any {
         return this._nodes;
