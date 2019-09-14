@@ -39,31 +39,50 @@ var GUILoader = /** @class */ (function () {
             onLoadCallback();
         }
     };
-    GUILoader.prototype._createGuiElement = function (node) {
+    GUILoader.prototype._getChainElement = function (attributeValue) {
+        if (this._parentClass) {
+            var value = attributeValue;
+            value = value.split(".");
+            var element = this._parentClass;
+            for (var i = 0; i < value.length; i++) {
+                element = element[value[i]];
+            }
+            return element;
+        }
+    };
+    GUILoader.prototype._createGuiElement = function (node, parent, linkParent) {
+        if (linkParent === void 0) { linkParent = true; }
         try {
             var NewGUINode = eval("BABYLON.GUI." + node.nodeName);
             var guiNode = new NewGUINode();
+            if (parent && linkParent) {
+                parent.addControl(guiNode);
+            }
             for (var i = 0; i < node.attributes.length; i++) {
                 if (node.attributes[i].name.toLowerCase().includes("dataSource")) {
                     continue;
                 }
                 if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
                     if (this._parentClass) {
-                        guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
+                        var element = this._getChainElement(node.attributes[i].value);
+                        guiNode[node.attributes[i].name].add(element);
                     }
                     else {
                         guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
                     }
                     continue;
                 }
-                if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
+                else if (node.attributes[i].name == "linkWithMesh") {
                     if (this._parentClass) {
-                        var value = node.attributes[i].value.substring(2, node.attributes[i].value.length - 2);
-                        value = value.split(".");
-                        var element = this._parentClass;
-                        for (var i_1 = 0; i_1 < value.length; i_1++) {
-                            element = element[value[i_1]];
-                        }
+                        guiNode.linkWithMesh(this._parentClass[node.attributes[i].value]);
+                    }
+                    else {
+                        guiNode.linkWithMesh(eval(node.attributes[i].value));
+                    }
+                }
+                else if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
+                    if (this._parentClass) {
+                        var element = this._getChainElement(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
                         guiNode[node.attributes[i].name] = element;
                     }
                     else {
@@ -148,7 +167,7 @@ var GUILoader = /** @class */ (function () {
                     if (cells[k].nodeType != this._nodeTypes.element) {
                         continue;
                     }
-                    cellNode = this._createGuiElement(cells[k]);
+                    cellNode = this._createGuiElement(cells[k], guiNode, false);
                     guiNode.addControl(cellNode, rowNumber, columnNumber);
                     if (cells[k].firstChild) {
                         this._parseXml(cells[k].firstChild, cellNode);
@@ -233,10 +252,7 @@ var GUILoader = /** @class */ (function () {
         if (generated) {
             node.setAttribute("id", parent.id + parent._children.length + 1);
         }
-        var guiNode = this._createGuiElement(node);
-        if (parent) {
-            parent.addControl(guiNode);
-        }
+        var guiNode = this._createGuiElement(node, parent);
         if (node.nodeName == "Grid") {
             this._parseGrid(node, guiNode, parent);
         }
@@ -256,39 +272,6 @@ var GUILoader = /** @class */ (function () {
     GUILoader.prototype.getNodes = function () {
         return this._nodes;
     };
-    // public validateXML(txt: any) {
-    //     // code for IE
-    //     if (window.ActiveXObject) {
-    //         let xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-    //         xmlDoc.async = false;
-    //         xmlDoc.loadXML(document.all(txt).value);
-    //         if (xmlDoc.parseError.errorCode != 0) {
-    //             txt = "Error Code: " + xmlDoc.parseError.errorCode + "\n";
-    //             txt = txt + "Error Reason: " + xmlDoc.parseError.reason;
-    //             txt = txt + "Error Line: " + xmlDoc.parseError.line;
-    //             alert(txt);
-    //         }
-    //         else {
-    //             alert("No errors found");
-    //         }
-    //     }
-    //     // code for Mozilla, Firefox, Opera, etc.
-    //     else if (document.implementation.createDocument) {
-    //         var parser = new DOMParser();
-    //         var text = document.getElementById(txt).value;
-    //         var xmlDoc = parser.parseFromString(text, "text/xml");
-    //         if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-    //             checkErrorXML(xmlDoc.getElementsByTagName("parsererror")[0]);
-    //             alert(xt)
-    //         }
-    //         else {
-    //             alert("No errors found");
-    //         }
-    //     }
-    //     else {
-    //         alert('Your browser cannot handle XML validation');
-    //     }
-    // }
     GUILoader.prototype.loadLayout = function (xmlFile, rootNode, callback) {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {

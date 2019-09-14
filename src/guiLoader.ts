@@ -6,8 +6,8 @@ class GUILoader {
         attribute: 2,
         text: 3
     };
-    
-    private _isLoaded : boolean = false;
+
+    private _isLoaded: boolean = false;
 
     private _objectAttributes: any = {
         "textHorizontalAlignment": 1,
@@ -48,12 +48,27 @@ class GUILoader {
         }
     }
 
-    private _createGuiElement(node: any): any {
+    private _getChainElement(attributeValue: any) {
+        if (this._parentClass) {
+            let value = attributeValue;
+            value = value.split(".");
+            let element = this._parentClass;
+            for (let i = 0; i < value.length; i++) {
+                element = element[value[i]];
+            }
+            return element;
+        }
+    }
 
+    private _createGuiElement(node: any, parent: any, linkParent: boolean = true): any {
         try {
             let NewGUINode = eval("BABYLON.GUI." + node.nodeName);
 
             let guiNode = new NewGUINode();
+
+            if (parent && linkParent) {
+                parent.addControl(guiNode);
+            }
 
             for (let i = 0; i < node.attributes.length; i++) {
 
@@ -63,36 +78,34 @@ class GUILoader {
 
                 if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
                     if (this._parentClass) {
-                        guiNode[node.attributes[i].name].add(this._parentClass[node.attributes[i].value]);
+                        let element = this._getChainElement(node.attributes[i].value);
+                        guiNode[node.attributes[i].name].add(element);
                     } else {
                         guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
                     }
                     continue;
-                }
-
-                if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
+                } else if (node.attributes[i].name == "linkWithMesh") {
                     if (this._parentClass) {
-                        let value = node.attributes[i].value.substring(2, node.attributes[i].value.length - 2);
-                        value = value.split(".");
-                        let element = this._parentClass;
-                        for (let i = 0; i < value.length; i++) {
-                            element = element[value[i]];
-                        }
+                        guiNode.linkWithMesh(this._parentClass[node.attributes[i].value]);
+                    } else {
+                        guiNode.linkWithMesh(eval(node.attributes[i].value))
+                    }
+                } else if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
+                    if (this._parentClass) {
+                        let element = this._getChainElement(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
                         guiNode[node.attributes[i].name] = element;
                     } else {
                         guiNode[node.attributes[i].name] = eval(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
                     }
-
                 } else if (!this._objectAttributes[node.attributes[i].name]) {
                     if (node.attributes[i].value == "true" || node.attributes[i].value == "false") {
                         guiNode[node.attributes[i].name] = (node.attributes[i].value == 'true')
                     } else {
                         guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
                     }
-                }  else {
+                } else {
                     guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
                 }
-                
             }
 
             if (!node.attributes.getNamedItem("id")) {
@@ -168,7 +181,7 @@ class GUILoader {
                     if (cells[k].nodeType != this._nodeTypes.element) {
                         continue;
                     }
-                    cellNode = this._createGuiElement(cells[k]);
+                    cellNode = this._createGuiElement(cells[k], guiNode, false);
                     guiNode.addControl(cellNode, rowNumber, columnNumber);
                     if (cells[k].firstChild) {
                         this._parseXml(cells[k].firstChild, cellNode);
@@ -197,8 +210,8 @@ class GUILoader {
         }
     }
 
-    private _prepareSourceElement(node: any, guiNode: any, variable: string, source: any, iterator: any) : void {
-        if(this._parentClass) {
+    private _prepareSourceElement(node: any, guiNode: any, variable: string, source: any, iterator: any): void {
+        if (this._parentClass) {
             this._parentClass[variable] = source[iterator];
         } else {
             window[variable] = source[iterator];
@@ -211,35 +224,35 @@ class GUILoader {
 
     private _parseElementsFromSource(node: any, guiNode: any, parent: any): void {
         let dataSource = node.attributes.getNamedItem("dataSource").value;
-        if(!dataSource.includes(" in ")) {
+        if (!dataSource.includes(" in ")) {
             throw "GUILoader Exception : Malformed XML, Data Source must include an in";
         } else {
             let isArray = true;
             let splittedSource = dataSource.split(" in ");
-            if(splittedSource.length < 2) {
+            if (splittedSource.length < 2) {
                 throw "GUILoader Exception : Malformed XML, Data Source must an iterator and a source";
             }
             let source = splittedSource[1];
-            if(source.startsWith("{") && source.endsWith("}")) {
+            if (source.startsWith("{") && source.endsWith("}")) {
                 isArray = false;
             }
-            
-            if(!isArray || (source.startsWith("[") && source.endsWith("]"))) {
+
+            if (!isArray || (source.startsWith("[") && source.endsWith("]"))) {
                 source = source.substring(1, source.length - 1);
-            } 
-            
-            if(this._parentClass) {
+            }
+
+            if (this._parentClass) {
                 source = this._parentClass[source];
             } else {
                 source = eval(source);
             }
 
-            if(isArray) {
-                for(let i = 0; i < source.length; i++) {
+            if (isArray) {
+                for (let i = 0; i < source.length; i++) {
                     this._prepareSourceElement(node, guiNode, splittedSource[0], source, i);
                 }
             } else {
-                for(let i in source) {
+                for (let i in source) {
                     this._prepareSourceElement(node, guiNode, splittedSource[0], source, i);
                 }
             }
@@ -259,19 +272,15 @@ class GUILoader {
             return;
         }
 
-        if(generated) {
-            node.setAttribute("id", parent.id + parent._children.length + 1); 
+        if (generated) {
+            node.setAttribute("id", parent.id + parent._children.length + 1);
         }
-        
-        let guiNode = this._createGuiElement(node);
 
-        if (parent) {
-            parent.addControl(guiNode);
-        }
+        let guiNode = this._createGuiElement(node, parent);
 
         if (node.nodeName == "Grid") {
             this._parseGrid(node, guiNode, parent);
-        } else if(!node.attributes.getNamedItem("dataSource")){
+        } else if (!node.attributes.getNamedItem("dataSource")) {
             this._parseElement(node, guiNode, parent);
         } else {
             this._parseElementsFromSource(node, guiNode, parent);
@@ -290,52 +299,16 @@ class GUILoader {
         return this._nodes;
     }
 
-    // public validateXML(txt: any) {
-    //     // code for IE
-    //     if (window.ActiveXObject) {
-    //         let xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-    //         xmlDoc.async = false;
-    //         xmlDoc.loadXML(document.all(txt).value);
+    public loadLayout(xmlFile: any, rootNode: any, callback: any): void {
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                this._xmlResponse(xhttp, rootNode, callback);
+            }
+        }.bind(this);
 
-    //         if (xmlDoc.parseError.errorCode != 0) {
-    //             txt = "Error Code: " + xmlDoc.parseError.errorCode + "\n";
-    //             txt = txt + "Error Reason: " + xmlDoc.parseError.reason;
-    //             txt = txt + "Error Line: " + xmlDoc.parseError.line;
-    //             alert(txt);
-    //         }
-    //         else {
-    //             alert("No errors found");
-    //         }
-    //     }
-    //     // code for Mozilla, Firefox, Opera, etc.
-    //     else if (document.implementation.createDocument) {
-    //         var parser = new DOMParser();
-    //         var text = document.getElementById(txt).value;
-    //         var xmlDoc = parser.parseFromString(text, "text/xml");
-
-    //         if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-    //             checkErrorXML(xmlDoc.getElementsByTagName("parsererror")[0]);
-    //             alert(xt)
-    //         }
-    //         else {
-    //             alert("No errors found");
-    //         }
-    //     }
-    //     else {
-    //         alert('Your browser cannot handle XML validation');
-    //     }
-    // }
-
-    public loadLayout(xmlFile : any, rootNode : any, callback : any): void {
-    let xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (xhttp.readyState == 4 && xhttp.status == 200) {
-            this._xmlResponse(xhttp, rootNode, callback);
-        }
-    }.bind(this);
-
-    xhttp.open("GET", xmlFile, true);
-    xhttp.send();
-}
+        xhttp.open("GET", xmlFile, true);
+        xhttp.send();
+    }
 }
 
