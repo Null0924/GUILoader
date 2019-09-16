@@ -1,6 +1,6 @@
 function Popup(advancedTexture) {
 
-    this.guiLoader = new GUILoader(this);
+    this.guiLoader = new XmlLoader(this);
     this.loaded = false;
     this.textWidth = "50px";
     var _this = this;

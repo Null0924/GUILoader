@@ -1,10 +1,12 @@
 /**
 * Class used to load GUI via XML.
 */
-var GUILoader = /** @class */ (function () {
-    function GUILoader(
-    /** Sets the class context. Used when the loader is instanced inside a class and not in a global context */
-    parentClass) {
+var XmlLoader = /** @class */ (function () {
+    /**
+    * Create a new xml loader
+    * @param parentClass Sets the class context. Used when the loader is instanced inside a class and not in a global context
+    */
+    function XmlLoader(parentClass) {
         if (parentClass === void 0) { parentClass = null; }
         this._nodes = {};
         this._nodeTypes = {
@@ -24,7 +26,7 @@ var GUILoader = /** @class */ (function () {
             this._parentClass = parentClass;
         }
     }
-    GUILoader.prototype._getChainElement = function (attributeValue, isGlobal) {
+    XmlLoader.prototype._getChainElement = function (attributeValue, isGlobal) {
         if (isGlobal === void 0) { isGlobal = false; }
         var element = window;
         if (this._parentClass && !isGlobal) {
@@ -37,7 +39,7 @@ var GUILoader = /** @class */ (function () {
         }
         return element;
     };
-    GUILoader.prototype._createGuiElement = function (node, parent, linkParent) {
+    XmlLoader.prototype._createGuiElement = function (node, parent, linkParent) {
         if (linkParent === void 0) { linkParent = true; }
         try {
             var className = this._getChainElement("BABYLON.GUI." + node.nodeName, true);
@@ -94,7 +96,7 @@ var GUILoader = /** @class */ (function () {
             throw "GUILoader Exception : Error parsing Control " + node.nodeName + "," + e + ".";
         }
     };
-    GUILoader.prototype._parseGrid = function (node, guiNode, parent) {
+    XmlLoader.prototype._parseGrid = function (node, guiNode, parent) {
         var width;
         var height;
         var columns;
@@ -160,7 +162,7 @@ var GUILoader = /** @class */ (function () {
             this._parseXml(node.nextSibling, parent);
         }
     };
-    GUILoader.prototype._parseElement = function (node, guiNode, parent) {
+    XmlLoader.prototype._parseElement = function (node, guiNode, parent) {
         if (node.firstChild) {
             this._parseXml(node.firstChild, guiNode);
         }
@@ -168,7 +170,7 @@ var GUILoader = /** @class */ (function () {
             this._parseXml(node.nextSibling, parent);
         }
     };
-    GUILoader.prototype._prepareSourceElement = function (node, guiNode, variable, source, iterator) {
+    XmlLoader.prototype._prepareSourceElement = function (node, guiNode, variable, source, iterator) {
         if (this._parentClass) {
             this._parentClass[variable] = source[iterator];
         }
@@ -179,7 +181,7 @@ var GUILoader = /** @class */ (function () {
             this._parseXml(node.firstChild, guiNode, true);
         }
     };
-    GUILoader.prototype._parseElementsFromSource = function (node, guiNode, parent) {
+    XmlLoader.prototype._parseElementsFromSource = function (node, guiNode, parent) {
         var dataSource = node.attributes.getNamedItem("dataSource").value;
         if (!dataSource.includes(" in ")) {
             throw "GUILoader Exception : Malformed XML, Data Source must include an in";
@@ -218,7 +220,7 @@ var GUILoader = /** @class */ (function () {
             }
         }
     };
-    GUILoader.prototype._parseXml = function (node, parent, generated) {
+    XmlLoader.prototype._parseXml = function (node, parent, generated) {
         if (generated === void 0) { generated = false; }
         if (node.nodeType != this._nodeTypes.element) {
             if (node.nextSibling) {
@@ -244,21 +246,22 @@ var GUILoader = /** @class */ (function () {
      * Gets if the loading has finished.
      * @returns whether the loading has finished or not
     */
-    GUILoader.prototype.isLoaded = function () {
+    XmlLoader.prototype.isLoaded = function () {
         return this._isLoaded;
     };
     /**
-     * Gets a loaded node / control by id. .
+     * Gets a loaded node / control by id.
+     * @param id the Controls id set in the xml
      * @returns element of type Control
     */
-    GUILoader.prototype.getNodeById = function (id) {
+    XmlLoader.prototype.getNodeById = function (id) {
         return this._nodes[id];
     };
     /**
      * Gets all loaded nodes / controls
      * @returns Array of controls
     */
-    GUILoader.prototype.getNodes = function () {
+    XmlLoader.prototype.getNodes = function () {
         return this._nodes;
     };
     /**
@@ -267,7 +270,7 @@ var GUILoader = /** @class */ (function () {
      * @param rootNode defines the node / control to use as a parent for the loaded layout controls.
      * @param callback defines the callback called on layout load.
      */
-    GUILoader.prototype.loadLayout = function (xmlFile, rootNode, callback) {
+    XmlLoader.prototype.loadLayout = function (xmlFile, rootNode, callback) {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
@@ -285,5 +288,5 @@ var GUILoader = /** @class */ (function () {
         xhttp.open("GET", xmlFile, true);
         xhttp.send();
     };
-    return GUILoader;
+    return XmlLoader;
 }());

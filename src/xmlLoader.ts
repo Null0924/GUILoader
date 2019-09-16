@@ -1,4 +1,8 @@
-class GUILoader {
+/**
+* Class used to load GUI via XML.
+*/
+
+class XmlLoader {
     private _nodes: any = {};
 
     private _nodeTypes: any = {
@@ -17,54 +21,38 @@ class GUILoader {
         "stretch": 5,
     };
 
-    private _events: any = {
-        "onPointerClickObservable": 1,
-        "onPointerMoveObservable": 2,
-        "onPointerUpObservable": 3,
-        "onPointerOutObservable": 4,
-        "onClipboardObservable": 5,
-        "onPointerDownObservable": 6,
-        "onPointerEnterObservable": 7
-    };
-
     private _parentClass: any;
 
+     /**
+     * Create a new xml loader
+     * @param parentClass Sets the class context. Used when the loader is instanced inside a class and not in a global context 
+     */
     constructor(parentClass = null) {
         if (parentClass) {
             this._parentClass = parentClass;
         }
     }
 
-    private _xmlResponse(xml: any, rootNode: any, onLoadCallback: any): void {
-        if (!xml.responseXML) {
-            throw "GUILoader Exception : XML file is malformed or corrupted.";
-        }
+    private _getChainElement(attributeValue: any, isGlobal: boolean = false): any {
+        let element = window;
 
-        let xmlDoc = xml.responseXML.documentElement;
-        this._parseXml(xmlDoc.firstChild, rootNode);
-        this._isLoaded = true;
-        if (onLoadCallback) {
-            onLoadCallback();
+        if (this._parentClass && !isGlobal) {
+            element = this._parentClass;
         }
+        let value = attributeValue;
+        value = value.split(".");
+
+        for (let i = 0; i < value.length; i++) {
+            element = element[value[i]];
+        }
+        return element;
+
     }
 
-    private _getChainElement(attributeValue: any) {
-        if (this._parentClass) {
-            let value = attributeValue;
-            value = value.split(".");
-            let element = this._parentClass;
-            for (let i = 0; i < value.length; i++) {
-                element = element[value[i]];
-            }
-            return element;
-        }
-    }
-
-    private _createGuiElement(node: any, parent: any, linkParent: boolean = true): any {
+    private _createGuiElement(node: any, parent: any, linkParent: boolean = true): void {
         try {
-            let NewGUINode = eval("BABYLON.GUI." + node.nodeName);
-
-            let guiNode = new NewGUINode();
+            let className = this._getChainElement("BABYLON.GUI." + node.nodeName, true);
+            let guiNode = new className();
 
             if (parent && linkParent) {
                 parent.addControl(guiNode);
@@ -72,39 +60,33 @@ class GUILoader {
 
             for (let i = 0; i < node.attributes.length; i++) {
 
-                if (node.attributes[i].name.toLowerCase().includes("dataSource")) {
+                if (node.attributes[i].name.toLowerCase().includes("datasource")) {
                     continue;
                 }
 
-                if (node.attributes[i].name.toLowerCase().includes("observable") || this._events[node.attributes[i].name]) {
-                    if (this._parentClass) {
-                        let element = this._getChainElement(node.attributes[i].value);
-                        guiNode[node.attributes[i].name].add(element);
-                    } else {
-                        guiNode[node.attributes[i].name].add(eval(node.attributes[i].value));
-                    }
+                if (node.attributes[i].name.toLowerCase().includes("observable")) {
+
+                    let element = this._getChainElement(node.attributes[i].value);
+                    guiNode[node.attributes[i].name].add(element);
+
                     continue;
                 } else if (node.attributes[i].name == "linkWithMesh") {
                     if (this._parentClass) {
                         guiNode.linkWithMesh(this._parentClass[node.attributes[i].value]);
                     } else {
-                        guiNode.linkWithMesh(eval(node.attributes[i].value))
+                        guiNode.linkWithMesh(window[node.attributes[i].value]);
                     }
                 } else if (node.attributes[i].value.startsWith("{{") && node.attributes[i].value.endsWith("}}")) {
-                    if (this._parentClass) {
-                        let element = this._getChainElement(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
-                        guiNode[node.attributes[i].name] = element;
-                    } else {
-                        guiNode[node.attributes[i].name] = eval(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
-                    }
+                    let element = this._getChainElement(node.attributes[i].value.substring(2, node.attributes[i].value.length - 2));
+                    guiNode[node.attributes[i].name] = element;
                 } else if (!this._objectAttributes[node.attributes[i].name]) {
                     if (node.attributes[i].value == "true" || node.attributes[i].value == "false") {
-                        guiNode[node.attributes[i].name] = (node.attributes[i].value == 'true')
+                        guiNode[node.attributes[i].name] = (node.attributes[i].value == 'true');
                     } else {
                         guiNode[node.attributes[i].name] = !isNaN(Number(node.attributes[i].value)) ? Number(node.attributes[i].value) : node.attributes[i].value;
                     }
                 } else {
-                    guiNode[node.attributes[i].name] = eval("BABYLON.GUI." + node.attributes[i].value);
+                    guiNode[node.attributes[i].name] = this._getChainElement("BABYLON.GUI." + node.attributes[i].value, true);
                 }
             }
 
@@ -150,8 +132,8 @@ class GUILoader {
             if (!rows[i].attributes.getNamedItem("height")) {
                 throw "GUILoader Exception : Height must be defined for grid rows";
             }
-            height = eval(rows[i].attributes.getNamedItem("height").nodeValue);
-            isPixel = rows[i].attributes.getNamedItem("isPixel") ? eval(rows[i].attributes.getNamedItem("isPixel").nodeValue) : false;
+            height = Number(rows[i].attributes.getNamedItem("height").nodeValue);
+            isPixel = rows[i].attributes.getNamedItem("isPixel") ? JSON.parse(rows[i].attributes.getNamedItem("isPixel").nodeValue) : false;
             guiNode.addRowDefinition(height, isPixel);
 
             for (let j = 0; j < columns.length; j++) {
@@ -170,8 +152,8 @@ class GUILoader {
                     if (!columns[j].attributes.getNamedItem("width")) {
                         throw "GUILoader Exception : Width must be defined for all the grid columns in the first row";
                     }
-                    width = eval(columns[j].attributes.getNamedItem("width").nodeValue);
-                    isPixel = columns[j].attributes.getNamedItem("isPixel") ? eval(columns[j].attributes.getNamedItem("isPixel").nodeValue) : false;
+                    width = Number(columns[j].attributes.getNamedItem("width").nodeValue);
+                    isPixel = columns[j].attributes.getNamedItem("isPixel") ? JSON.parse(columns[j].attributes.getNamedItem("isPixel").nodeValue) : false;
                     guiNode.addColumnDefinition(width, isPixel);
                 }
 
@@ -210,7 +192,7 @@ class GUILoader {
         }
     }
 
-    private _prepareSourceElement(node: any, guiNode: any, variable: string, source: any, iterator: any): void {
+    private _prepareSourceElement(node: any, guiNode: any, variable: any, source: any, iterator: any): void {
         if (this._parentClass) {
             this._parentClass[variable] = source[iterator];
         } else {
@@ -244,7 +226,7 @@ class GUILoader {
             if (this._parentClass) {
                 source = this._parentClass[source];
             } else {
-                source = eval(source);
+                source = window[source];
             }
 
             if (isArray) {
@@ -287,23 +269,51 @@ class GUILoader {
         }
     }
 
+    /**
+     * Gets if the loading has finished.
+     * @returns whether the loading has finished or not
+    */
     public isLoaded(): boolean {
         return this._isLoaded;
     }
 
+    /**
+     * Gets a loaded node / control by id.
+     * @param id the Controls id set in the xml
+     * @returns element of type Control
+    */
     public getNodeById(id: string): any {
         return this._nodes[id];
     }
 
+    /**
+     * Gets all loaded nodes / controls
+     * @returns Array of controls
+    */
     public getNodes(): any {
         return this._nodes;
     }
 
+    /**
+     * Initiates the xml layout loading
+     * @param xmlFile defines the xml layout to load
+     * @param rootNode defines the node / control to use as a parent for the loaded layout controls.
+     * @param callback defines the callback called on layout load.
+     */
     public loadLayout(xmlFile: any, rootNode: any, callback: any): void {
         let xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
+        xhttp.onreadystatechange = function(this: XmlLoader) {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
-                this._xmlResponse(xhttp, rootNode, callback);
+                if (!xhttp.responseXML) {
+                    throw "GUILoader Exception : XML file is malformed or corrupted.";
+                }
+
+                let xmlDoc = xhttp.responseXML.documentElement;
+                this._parseXml(xmlDoc.firstChild, rootNode);
+                this._isLoaded = true;
+                if (callback) {
+                    callback();
+                }
             }
         }.bind(this);
 
@@ -311,4 +321,3 @@ class GUILoader {
         xhttp.send();
     }
 }
-

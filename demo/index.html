@@ -24,7 +24,7 @@
     <script src="https://preview.babylonjs.com/babylon.max.js"></script>
     <script src="https://preview.babylonjs.com/gui/babylon.gui.js"></script>
     <!-- <script src="libs/babylon.inspector.bundle.js"></script> -->
-    <script src="../build/guiLoader.js"></script>
+    <script src="../build/xmlLoader.js"></script>
     <script src="popup.js"></script>
 
 </head>
@@ -76,10 +76,10 @@
         var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
         var popup = new Popup(advancedTexture);
 
-        var GuiLoader = new GUILoader();
+        var guiLoader = new XmlLoader();
 
-        GuiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function() {
-            console.log(GuiLoader.getNodes())
+        guiLoader.loadLayout("layouts/testgui.xml", advancedTexture, function() {
+            console.log(guiLoader.getNodes())
         });
 
         var clickEvent = function() {
